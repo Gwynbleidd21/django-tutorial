@@ -1,0 +1,34 @@
+{% for question in questions %}
+    <h2>{{ question.question_text }}</h2>
+    <!-- Canvas for the chart -->
+    <canvas id="chart-{{ question.id }}"></canvas>
+{% endfor %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function() {
+        const pollId = {{ poll.id }};
+        $.ajax({
+            url: "{% url 'polls:poll_results_api' poll.id %}",
+            method: "GET",
+            success: function(data) {
+                // Iterate through each question and create a chart
+                data.results.forEach(function(questionData) {
+                    var ctx = document.getElementById('chart-' + questionData.question_id).getContext('2d');
+                    var chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: questionData.choices.map(choice => choice.choice_text),
+                            datasets: [{
+                                label: 'Number of Answers',
+                                data: questionData.choices.map(choice => choice.votes),
+                                backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                            }]
+                        }
+                    });
+                });
+            }
+        });
+    });
+</script>
